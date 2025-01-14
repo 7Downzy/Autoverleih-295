@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: demo
+      MYSQL_DATABASE: demo
+      MYSQL_USER: demo
+      MYSQL_PASSWORD: demo
+    volumes:
+      - demo-data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+    image: m210-backend:1.1
+    depends_on:
+      - mysql-db
+    environment:
+      MYSQL_HOST: mysql-db
+      MYSQL_DATABASE: demo
+      MYSQL_USER: demo
+      MYSQL_PASSWORD: demo
+    ports:
+      - "8080:8080"
+
+  caddy_proxy:
+    image: caddy:latest
+    ports:
+      - "80:80"  # HTTP
+      - "443:443" # HTTPS
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+volumes:
+  demo-data:
+  caddy_data:
+  caddy_config:
